@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "relay-learning"
-version = "0.1.0"
-description = "Relay 的离线 agent 工具调用教学起点"
+version = "0.2.0"
+description = "Relay 的 agent 工具调用学习循环与可选 Responses 适配器"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
@@ -13,6 +13,11 @@ dependencies = []
 [project.urls]
 Repository = "https://github.com/lmjshineee/Relay"
 Issues = "https://github.com/lmjshineee/Relay/issues"
+
+[project.optional-dependencies]
+openai = [
+    "openai>=3.37.0",
+]
 
 [tool.setuptools]
 packages = ["relay"]

@@ -2,9 +2,9 @@
 
 从一个能运行的小循环开始，学习 coding agent 如何调用工具，逐步构建可恢复、成本可追溯的 Coding Agent Runtime。
 
-Relay starts with a small, offline tool-calling loop for learning agent development. Recovery, real model integration, and code repair are planned work.
+Relay starts with a small tool-calling loop for learning agent development. An optional OpenAI Responses adapter is tested offline; live model behavior, recovery, and code repair remain unverified or planned.
 
-**当前状态：第一批离线教学实现。** 脚本模型的动作与结论均为预写内容，不会推理。完整 runtime 仍处于设计阶段；详细状态见 [实现进度](docs/08-project-status.md)。
+**当前状态：第二批，Responses 适配层已实现并离线验证。** `demo` 继续使用预写脚本；`ask` 是显式真实调用入口，尚未试跑真实模型。完整 runtime 仍处于设计阶段；详细状态见 [实现进度](docs/08-project-status.md)。
 
 ### 1. 快速开始
 
@@ -18,7 +18,17 @@ python3 -m unittest discover -s tests -v
 python3 scripts/check_docs.py
 ```
 
-Windows 可将 `python3` 换成对应的 Python 命令。当前本地验证环境为 macOS、Python 3.14.9；CI 配置在 Linux 上检查 Python 3.11 与 3.14，实际结果以仓库 Actions 为准。
+Windows 可将 `python3` 换成对应的 Python 命令。当前无 SDK 本地验证环境为 macOS、Python 3.14.9；CI 配置在 Linux 上检查 Python 3.11 与 3.14，实际结果以仓库 Actions 为准。
+
+第二批可选 SDK 的安装、离线验证与真实调用入口：
+
+```bash
+uv sync --frozen --extra openai
+uv run --frozen --extra openai python -m unittest discover -s tests -v
+uv run --frozen --extra openai python -m relay ask --help
+```
+
+共 29 项测试；安装 SDK 后全部运行，未安装时 3 项 SDK 测试明确跳过。普通检查使用模拟客户端，不请求收费 API。`ask` 的实际运行会发送工作区读取结果并产生费用，需要本地 `OPENAI_API_KEY` 和明确的 `--model`；详见 [第二批学习指南](docs/10-second-batch-responses.md)。
 
 演示读取 `examples/read-only/issue.md` 和 `calculator.py`，返回 JSON。关键字段如下，完整输出还包含对话与工具结果：
 
@@ -46,10 +56,10 @@ python3 -m relay demo --max-steps 1
 
 | 已实现并测试 | 后续计划 |
 |---|---|
-| `read_file` 及参数、路径、大小检查 | 真实模型适配与费用记录 |
+| `read_file` 及参数、路径、大小检查 | 真实模型行为与用量的实测、费用账本 |
 | 工具请求、观察回传、对话配对 | 文件修改、命令执行与执行隔离 |
 | 步数限制、错误分类和 JSON 轨迹 | 候选补丁与独立验收 |
-| 离线 fixture 与 17 项自动化测试 | SQLite 事件、Worker、检查点与恢复 |
+| Responses 适配器、可选 SDK 与 29 项测试 | SQLite 事件、Worker、检查点与恢复 |
 
 路径检查适用于静态本地 fixture，不是操作系统沙箱；当前没有跨运行持久化或自动恢复。
 
@@ -59,6 +69,7 @@ python3 -m relay demo --max-steps 1
 2. 按 [`tools.py`](relay/tools.py) → [`models.py`](relay/models.py) → [`loop.py`](relay/loop.py) 的顺序阅读，解释模型与 Python 各做了什么。
 3. 完成 [第一批学习指南](docs/06-first-batch-learning.md) 中的四个实验，先预测再观察。
 4. 需要课程补充时参考 [CS146S 学习搭配](docs/07-cs146s-learning-route.md)。
+5. 继续读 [第二批学习指南](docs/10-second-batch-responses.md)，理解 API 原始上下文与本地工具观察如何配对。
 
 ### 4. 项目结构
 
@@ -82,11 +93,12 @@ docs/           学习指南、当前状态、完整 runtime 设计
 7. [CS146S 学习搭配](docs/07-cs146s-learning-route.md)：课程参考与项目练习。
 8. [实现进度](docs/08-project-status.md)：已有能力、验证证据与下一步。
 9. [CLI 与工具参考](docs/09-cli-and-tools.md)：参数、消息格式、错误和结果解释。
+10. [第二批学习指南](docs/10-second-batch-responses.md)：Responses 适配、用量记录与 SDK 离线测试。
 
 文档 01–05 主要定义未来完整 runtime。实际可执行命令以本 README 和 CLI 参考为准，`relay run/resume/evaluate` 等仍是待实现契约。
 
 ### 6. 后续方向与参与
 
-下一批先接一个真实模型，检验它能否根据工具观察调整动作。之后完成代码修复与独立验收，再增加持久化、动作对账、检查点和上下文实验。长期研究问题是恢复和上下文策略对成功率、费用与延迟的影响，当前没有相关性能结论。
+下一步选择具体模型与费用上限，显式试跑 Responses，检验模型能否根据工具观察调整动作。之后完成代码修复与独立验收，再增加持久化、动作对账、检查点和上下文实验。长期研究问题是恢复和上下文策略对成功率、费用与延迟的影响，当前没有相关性能结论。
 
 开发检查与问题反馈见 [贡献指南](CONTRIBUTING.md)，每批变更见 [更新记录](CHANGELOG.md)。

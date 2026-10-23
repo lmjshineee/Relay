@@ -7,7 +7,7 @@ from urllib.parse import unquote, urlsplit
 
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
-    files = [root / name for name in ("README.md", "CONTRIBUTING.md", "CHANGELOG.md")]
+    files = [root / name for name in ("README.md", "CONTRIBUTING.md", "CHANGELOG.md", "AGENTS.md")]
     files.extend(sorted((root / "docs").glob("*.md")))
     errors = []
     for file in files:

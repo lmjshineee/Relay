@@ -14,12 +14,23 @@ python3 -m relay demo
 
 测试使用临时目录，不应修改教学 fixture。正常演示退出码为 0；`--max-steps 1` 是预期失败路径，退出码为 1。CI 执行同类检查，结果以对应提交的 Actions 记录为准。
 
+可选 SDK 通过锁文件安装后，再执行同一组测试：
+
+```bash
+uv sync --frozen --extra openai
+uv run --frozen --extra openai python -m unittest discover -s tests -v
+```
+
+当前共 29 项测试；没有 SDK 时 26 项通过、3 项跳过，安装后应全部通过。SDK 测试使用内存 HTTP 模拟，既不连接 OpenAI，也不需要真实密钥。`ask` 是单独的真实调用入口，不在普通检查中执行。
+
 ### 2. 提交改动
 
 1. 先写明具体问题、预期行为和受影响的学习切片。
 2. 做一个边界清楚的改动，避免同时引入框架、多个工具和新持久化协议。
 3. 对行为变化验证正常路径与相关失败路径；纯文档变更运行文档检查。
 4. 更新当前能力、命令说明与更新记录。PR 说明问题、最终行为、验证命令及仍未验证的部分。
+
+每个已完成的学习批次单独 commit，并在交付说明中给出 SHA。Agent 的项目约定见 [AGENTS.md](AGENTS.md)。
 
 新增工具必须在 Python 中校验参数与权限，不能只靠提示词。新增写入或命令执行前，先明确隔离范围、持久意图和独立验收，参考 [工程规范](docs/04-engineering-and-evaluation.md)。模型说“完成”不能成为修复通过的依据。
 
